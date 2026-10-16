@@ -19,21 +19,13 @@
 
 | Home | Search |
 |:---:|:---:|
-| ![Home](docs/screenshots/01-home.png) | ![Search](docs/screenshots/02-search.png) |
-
-| Album / playlist | Artist |
-|:---:|:---:|
-| ![Album](docs/screenshots/03-album.png) | ![Artist](docs/screenshots/04-artist.png) |
-
-| Lyrics panel | Library |
-|:---:|:---:|
-| ![Lyrics](docs/screenshots/05-lyrics.png) | ![Library](docs/screenshots/06-library.png) |
+| ![Home](Blackcurrent_image/2.png) | ![Search](Blackcurrent_image/4.png) |
 
 **Themes:** *Blackcurrant* (default), *Dark*, and *Light*.
 
 | Blackcurrant | Dark | Light |
 |:---:|:---:|:---:|
-| ![Blackcurrant theme](docs/screenshots/07-theme-blackcurrant.png) | ![Dark theme](docs/screenshots/08-theme-dark.png) | ![Light theme](docs/screenshots/09-theme-light.png) |
+| ![Blackcurrant theme](Blackcurrent_image/2.png) | ![Dark theme](Blackcurrent_image/6.png) | ![Light theme](Blackcurrent_image/7.png) |
 
 ---
 
