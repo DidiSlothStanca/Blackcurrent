@@ -1,251 +1,193 @@
-<p align="center">
-  <img src="resources/blackcurrant.png" alt="Blackcurrant Music Player logo" width="128">
-</p>
+# Blackcurrant Music Player — Qt/C++
 
-<h1 align="center">Blackcurrant Music Player</h1>
+**Versi: 0.1.0-Beta** · Developer: Opensource OS Gathering Republic (OOGR) ·
+Maintainer: Didi Sloth Stanca
 
-<p align="center">
-  A fast, Spotify-style desktop music player for Linux, built with Qt 6 and C++.<br>
-  Browse and stream music from YouTube Music, with no account required.
-</p>
+Versi Qt 6 + C++ dari pemutar musik gaya Spotify yang sebelumnya ditulis dengan
+Python + Tkinter (`../music_player/`). Tampilan dan perilaku dibuat semirip
+mungkin, tetapi seluruh antarmuka dan pemutaran audio berjalan di C++/Qt agar
+jauh lebih cepat dan mulus.
 
-<p align="center">
-  <b>Version 0.1.0-Beta</b> &middot; Linux (AppImage) &middot; English / Bahasa Indonesia
-</p>
-
----
-
-## Screenshots
-
-| Home | Search |
-|:---:|:---:|
-| ![Home](docs/screenshots/01-home.png) | ![Search](docs/screenshots/02-search.png) |
-
-| Album / playlist | Artist |
-|:---:|:---:|
-| ![Album](docs/screenshots/03-album.png) | ![Artist](docs/screenshots/04-artist.png) |
-
-| Lyrics panel | Library |
-|:---:|:---:|
-| ![Lyrics](docs/screenshots/05-lyrics.png) | ![Library](docs/screenshots/06-library.png) |
-
-**Themes:** *Blackcurrant* (default), *Dark*, and *Light*.
-
-| Blackcurrant | Dark | Light |
-|:---:|:---:|:---:|
-| ![Blackcurrant theme](docs/screenshots/07-theme-blackcurrant.png) | ![Dark theme](docs/screenshots/08-theme-dark.png) | ![Light theme](docs/screenshots/09-theme-light.png) |
-
----
-
-## Features
-
-- **Home**: greeting, quick picks, personalized recommendations, albums from the YouTube Music home page, genres and moods, and a "recently played" shelf.
-- **Search**: live suggestions, search history, and results for songs and albums.
-- **Library**: local playlists (create, rename, delete), liked songs, liked albums, and listening history.
-- **Album, playlist, genre, and artist pages**: top songs, albums and singles, and full song lists.
-- **Lyrics panel** that slides in from the right for the track that is playing.
-- **Player bar**: play/pause, previous/next, shuffle, repeat one, seek, like, volume (remembered), audio output device picker, and a sound test.
-- **Three themes** and a **bilingual interface** (English and Bahasa Indonesia) that switch instantly, without a restart.
-- **Taste-aware recommendations** learned locally from what you play. Your data never leaves your machine.
-- **Keyboard shortcuts**: `Space` to play/pause, `Esc` to go back.
-
----
-
-## Install (Linux AppImage)
-
-The AppImage is a single self-contained file. It bundles Qt 6, the multimedia plugins, a portable Python runtime, and `yt-dlp`, so you do not need to install anything else besides your system's FUSE 2 library (see step 2).
-
-### 1. Download
-
-Get the latest file from the **[Releases page](https://github.com/<OWNER>/<REPO>/releases)**:
+## Arsitektur
 
 ```
-Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage
-Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage.sha256
++--------------------------- Qt / C++ ---------------------------+
+|  MainWindow  (sidebar, topbar, konten, bilah pemutar, lirik)    |
+|  Views       (beranda, pencarian, koleksi, detail, artis, ...)   |
+|  Widgets     (kartu lagu, baris lagu, ubin genre, area gulir)    |
+|  Theme       (blackcurrant / dark / light, QSS)                  |
+|  Storage     (playlist, disukai, riwayat, setelan -> JSON)       |
+|  Thumbnails  (cache memori + disk)                               |
+|  AudioPlayer (QMediaPlayer + FFmpeg, resolusi via yt-dlp)        |
++---------------------------------+--------------------------------+
+                                  | JSON lines (stdin/stdout)
++---------------------------------v--------------------------------+
+|  Bridge Python (bridge/bridge.py) -> YTMusicService (ytmusicapi) |
++------------------------------------------------------------------+
 ```
 
-Optional: verify the download.
+- **UI & audio 100% C++/Qt.** Tidak ada Tkinter.
+- **Data musik tetap lewat Python.** Proses `bridge/bridge.py` yang berjalan lama
+  berbicara protokol JSON-lines dan memakai ulang lapisan `ytmusicapi` yang sama
+  persis dengan aplikasi Python, sehingga hasil pencarian/album/artis identik.
+- **Audio memakai Qt Multimedia** (backend FFmpeg). URL stream diambil dengan
+  `yt-dlp -g` (tanpa dependensi tambahan).
+
+## Kebutuhan
+
+- Qt 6 (Widgets, Network, Multimedia) — diuji pada Qt 6.8
+- CMake >= 3.16, Ninja (opsional), kompiler C++17
+- `python3` + `ytmusicapi`
+- `yt-dlp` di `PATH` (atau `~/.local/bin/yt-dlp`, atau set `BC_YTDLP`)
+
+## Membangun & menjalankan
 
 ```bash
-sha256sum -c Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage.sha256
-```
-
-### 2. Make sure FUSE 2 is installed
-
-AppImages need the FUSE 2 library. Many desktop distributions already ship it. If the app refuses to start with a message about `libfuse.so.2`, install it:
-
-| Distribution | Command |
-|---|---|
-| Ubuntu 22.04 / Debian / Linux Mint | `sudo apt install libfuse2` |
-| Ubuntu 24.04 and newer | `sudo apt install libfuse2t64` |
-| Fedora | `sudo dnf install fuse-libs` |
-| Arch / Manjaro | `sudo pacman -S fuse2` |
-| openSUSE | `sudo zypper install libfuse2` |
-
-No root access, or you do not want FUSE? Skip this step and run the AppImage with `--appimage-extract-and-run` (see below).
-
-### 3. Run it
-
-```bash
-chmod +x Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage
-./Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage
-```
-
-You can also right-click the file in your file manager, open **Properties**, and enable **Allow executing file as program**, then double-click it.
-
-Without FUSE:
-
-```bash
-./Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage --appimage-extract-and-run
-```
-
-### 4. (Optional) Add it to your application menu
-
-The simplest way is [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher), which offers to integrate any AppImage you open.
-
-Or do it by hand (no extra software needed):
-
-```bash
-APPIMAGE=Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage
-
-mkdir -p ~/Applications ~/.local/share/icons ~/.local/share/applications
-mv "$APPIMAGE" ~/Applications/
-
-# Extract the icon from inside the AppImage
-cd /tmp
-~/Applications/"$APPIMAGE" --appimage-extract usr/share/icons/hicolor/512x512/apps/blackcurrant.png
-cp squashfs-root/usr/share/icons/hicolor/512x512/apps/blackcurrant.png ~/.local/share/icons/blackcurrant.png
-rm -rf squashfs-root
-
-# Create the launcher entry
-cat > ~/.local/share/applications/blackcurrant.desktop <<EOF
-[Desktop Entry]
-Type=Application
-Name=Blackcurrant Music Player
-Comment=Open-source desktop music player using YouTube Music as its data source
-Exec=$HOME/Applications/$APPIMAGE
-Icon=$HOME/.local/share/icons/blackcurrant.png
-Categories=AudioVideo;Audio;Player;
-Terminal=false
-EOF
-
-update-desktop-database ~/.local/share/applications 2>/dev/null || true
-```
-
-"Blackcurrant Music Player" should now appear in your application menu.
-
-### Update
-
-Download the new AppImage, replace the old file, and run it. Your playlists, likes, and settings are stored separately (see [Your data](#your-data)), so they are kept.
-
-### Uninstall
-
-```bash
-rm -f ~/Applications/Blackcurrant_Music_Player-*.AppImage
-rm -f ~/.local/share/applications/blackcurrant.desktop ~/.local/share/icons/blackcurrant.png
-# Also remove your playlists, likes, history, and settings (optional):
-rm -rf ~/.config/blackcurrant-music-player
-```
-
----
-
-## Requirements
-
-- A 64-bit Linux desktop (X11 or Wayland) with a reasonably recent glibc. Very old distributions may not start the AppImage.
-- FUSE 2 (see step 2), or use `--appimage-extract-and-run`.
-- A working audio output (PulseAudio or PipeWire).
-- An **internet connection**. Music is streamed from YouTube Music; there is no offline playback in this version.
-
----
-
-## Your data
-
-Everything is stored locally in `~/.config/blackcurrant-music-player/` (it follows `XDG_CONFIG_HOME`):
-
-`playlists.json`, `liked.json`, `liked_albums.json`, `history.json`, `playcounts.json`, `taste.json`, `search_history.json`, `settings.json`, and a `cache/` folder for thumbnails.
-
-No account or sign-in is used.
-
-### Automatic yt-dlp updates
-
-YouTube changes often, so the app keeps its bundled `yt-dlp` fresh. On first run it copies `yt-dlp` to `~/.config/blackcurrant-music-player/bin/` and updates that copy in the background (at most once a day). If every YouTube client fails to fetch a stream, it also updates once and retries automatically. If you point the app to your own `yt-dlp` with `BC_YTDLP`, it will not touch it.
-
----
-
-## Troubleshooting
-
-| Problem | What to try |
-|---|---|
-| `dlopen(): error loading libfuse.so.2` | Install FUSE 2 (step 2), or run with `--appimage-extract-and-run`. |
-| Nothing happens when double-clicking | Make the file executable (step 3). Run it from a terminal to see error messages. |
-| A song will not play / "stream not found" | Check your internet connection and wait a few seconds: `yt-dlp` may be updating itself. Then try the song again. |
-| No sound | Open the audio device picker in the player bar and choose your output, then use **Test sound**. Also check your system volume and PipeWire/PulseAudio settings. |
-| Window does not appear on Wayland | Start with `QT_QPA_PLATFORM=xcb ./Blackcurrant_Music_Player-0.1.0-Beta-x86_64.AppImage`. |
-| Interface language is wrong | Use the **Language** selector at the bottom of the sidebar (below the Theme selector). |
-
-### Environment variables
-
-| Variable | Purpose |
-|---|---|
-| `BC_YTDLP` | Path to a custom `yt-dlp` binary. |
-| `BC_PYTHON` | Python interpreter used for the data bridge. |
-| `BC_DATA_DIR` | Use a different folder for your data. |
-
----
-
-## How it works
-
-```
-Qt 6 / C++ UI + audio (QMediaPlayer, FFmpeg backend)
-        |  JSON lines over stdin/stdout
-Python bridge (ytmusicapi)  ->  YouTube Music data
-        |
-yt-dlp  ->  audio stream URL
-```
-
-The whole interface and audio playback run natively in C++/Qt, which keeps scrolling and startup fast. A small long-running Python process fetches search results, albums, artists, and lyrics through [`ytmusicapi`](https://github.com/sigma67/ytmusicapi), and [`yt-dlp`](https://github.com/yt-dlp/yt-dlp) resolves the audio stream for the track you play.
-
----
-
-## Build from source
-
-Requires Qt 6.5+ (Widgets, Network, Multimedia), CMake 3.16+, a C++17 compiler, Python 3 with `ytmusicapi`, and `yt-dlp` in your `PATH`.
-
-```bash
-git clone https://github.com/<OWNER>/<REPO>.git
-cd <REPO>/music_player_qt
-pip install -r bridge/requirements.txt
+cd music_player_qt
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 ninja -C build
 ./build/blackcurrant
 ```
 
-To build the AppImage yourself:
+Folder `bridge/` otomatis disalin ke direktori build saat kompilasi.
+
+## Bahasa / Language
+
+Antarmuka tersedia dalam **English** (bawaan) dan **Bahasa Indonesia**. Ganti lewat
+pemilih **Bahasa / Language** di bagian bawah sidebar (di bawah pemilih Tema); pilihan
+disimpan di `settings.json` dan langsung diterapkan tanpa memulai ulang.
+
+- Teks sumber di kode berbahasa Indonesia dan dibungkus `TR("...")`
+  (`src/i18n.h`). Padanan Inggris ada di tabel `src/i18n_table.inc`.
+- Menambah/mengubah terjemahan: tambahkan baris `{"teks Indonesia", "English text"},`
+  pada `src/i18n_table.inc`. Teks yang tidak ada di tabel ditampilkan apa adanya.
+
+## Tema
+
+Tiga tema, dapat diganti dari pemilih **Tema** di bagian bawah sidebar:
+
+| Tema          | Latar                          | Aksen                     |
+|---------------|--------------------------------|---------------------------|
+| `blackcurrant` (bawaan) | ungu sangat gelap   | ungu magenta `#a855f7`    |
+| `dark`        | hitam netral                   | rose/oranye hangat `#ff7a59` |
+| `light`       | putih                          | ungu tua `#7c3aed`        |
+
+Tidak ada aksen hijau maupun biru. Pilihan tema disimpan di setelan.
+
+## Versi & About
+
+Informasi aplikasi (nama, versi, pengembang, pemelihara) dipusatkan di
+`src/version.h`. Ubah di sana saja: judul window, judul sidebar, dan halaman
+**Tentang / About** (item terakhir di menu sidebar) ikut berubah.
+
+## Build AppImage (standalone)
 
 ```bash
-./build-appimage.sh --install-qt                     # downloads Qt 6.7.3, then builds
-QT_DIR=$HOME/Qt/6.7.3/gcc_64 ./build-appimage.sh     # or use your own Qt (6.5+)
+./build-appimage.sh --install-qt          # unduh Qt 6.7.3 (aqtinstall) lalu build
+QT_DIR=$HOME/Qt/6.7.3/gcc_64 ./build-appimage.sh   # atau pakai Qt sendiri (>= 6.5)
+BC_LICENSE=GPL-3.0-or-later ./build-appimage.sh    # isi ID SPDX lisensi untuk metainfo
 ```
 
-The result is written to `dist/`. For best compatibility, build on the oldest distribution you want to support.
+Hasil: `dist/Blackcurrant_Music_Player-<versi>-<arch>.AppImage` (+ `.sha256`).
 
----
+Yang dibundel: Qt 6 + plugin Multimedia (linuxdeploy + plugin Qt), Python portable
+beserta `ytmusicapi`/`requests`/`Pillow` (`bridge/requirements.txt`), dan `yt-dlp`.
+Nama, versi, developer, dan maintainer pada `.desktop` serta metainfo diambil dari
+`src/version.h` (sama dengan halaman About). Data pengguna tetap di
+`~/.config/blackcurrant-music-player/`, bukan di dalam AppImage.
 
-## Disclaimer
+Catatan: build di distro paling lama yang ingin didukung (glibc lebih tua = lebih
+kompatibel).
 
-Blackcurrant Music Player is an independent, open-source project. It is **not affiliated with, endorsed by, or sponsored by YouTube, YouTube Music, or Google**. It relies on unofficial third-party tools (`ytmusicapi` and `yt-dlp`) to access public data and streams. You are responsible for using it in line with the terms of service of the services you access and the laws that apply to you. All trademarks belong to their respective owners.
+### Pembaruan otomatis yt-dlp
 
-This is a **beta release**: expect rough edges, and please report bugs.
+AppImage bersifat hanya-baca, jadi saat pertama dipakai aplikasi menyalin `yt-dlp`
+bawaan ke `~/.config/blackcurrant-music-player/bin/yt-dlp`. Salinan itu diperbarui
+sendiri (`yt-dlp -U`):
 
----
+- di latar belakang ±8 detik setelah aplikasi dibuka, paling sering sehari sekali
+  (penanda waktu: `bin/.last-update`);
+- otomatis sekali per sesi bila semua klien YouTube gagal mengambil stream, lalu
+  pemutaran dicoba lagi.
 
-## Credits
+Bila AppImage baru dibangun ulang dengan yt-dlp yang lebih baru dari salinan, salinan
+diganti. yt-dlp dari sistem atau dari `BC_YTDLP` tidak disentuh. Pembaruan butuh
+internet; bila gagal, aplikasi tetap memakai salinan yang ada.
 
-- **Developer:** Opensource OS Gathering Republic (OOGR)
-- **Maintainer:** Didi Sloth Stanca
-- Built with [Qt](https://www.qt.io/), [ytmusicapi](https://github.com/sigma67/ytmusicapi), [yt-dlp](https://github.com/yt-dlp/yt-dlp), and FFmpeg.
+## Fitur
 
-## License
+- **Beranda** — sapaan, pintasan, pilihan cepat, rekomendasi personal,
+  album dari beranda YouTube Music, genre/suasana hati, terakhir diputar.
+  - *Terakhir Diputar*: maks. 16 lagu, 3 baris ke bawah × 3 kolom terlihat;
+    sisanya digeser ke samping (scrollbar, Shift+roda, atau touchpad).
+  - *Pilihan Cepat*: lagu dari artis yang paling sering kamu putar (belum ada
+    riwayat → pilihan cepat bawaan YouTube Music).
+  - *Rekomendasi*: dicampur dari genre yang paling sering kamu putar + lagu
+    serupa dari lagu favoritmu.
+  - *Genre Lagu*: diurutkan dari genre yang paling sering kamu putar.
+- **Pencarian** — saran ketik-langsung, riwayat pencarian, hasil lagu + album.
+- **Koleksi** — playlist lokal (buat/ganti nama/hapus), lagu disukai,
+  album disukai, riwayat musik (dapat dibersihkan).
+- **Detail** — album, playlist lokal, dan halaman genre.
+- **Artis** — lagu terpopuler, album & single, semua lagu.
+- **Panel lirik** — meluncur dari kanan, memuat lirik lagu yang diputar.
+- **Bilah pemutar** — putar/jeda, sebelumnya/berikutnya, acak, ulangi satu lagu,
+  geser posisi, suka, volume (tersimpan), pemilih perangkat audio, uji suara.
+- **Sidebar** — laci yang tertutup secara bawaan; buka dengan ☰. Menutup
+  otomatis setelah memilih menu, klik area gelap, atau `Esc`. Berisi daftar
+  playlist lokal, status audio, status jaringan, dan pemilih tema.
+- **Tombol kembali** dan tumpukan navigasi.
+- **Menu konteks lagu** — putar sekarang, putar berikutnya, suka, tambahkan ke
+  playlist, buka artis, hapus dari playlist.
 
-<!-- Fill in your license (for example GPL-3.0-or-later) and add a LICENSE file. -->
-See the `LICENSE` file.
+### Pintasan papan tik
+
+- `Spasi` — putar/jeda (diabaikan saat fokus di kolom teks)
+- `Esc` — kembali ke halaman sebelumnya
+
+## Direktori data
+
+Disimpan di `~/.config/blackcurrant-music-player/` (mengikuti `XDG_CONFIG_HOME`).
+Data lama di `<folder aplikasi>/data` disalin otomatis sekali saja. Berisi
+`playlists.json`, `liked.json`, `liked_albums.json`, `history.json`,
+`playcounts.json`, `taste.json` (profil artis & genre favorit),
+`search_history.json`, `settings.json`, dan `cache/`.
+
+### Bagaimana genre favorit dipelajari
+
+YouTube Music tidak memberi tahu genre sebuah lagu, jadi genre dipelajari
+secara lokal: (1) lagu yang diputar dari halaman genre dihitung untuk genre itu,
+(2) isi halaman genre yang kamu buka mengaitkan para artisnya dengan genre
+tersebut, sehingga lagu artis yang sama yang diputar dari tempat lain ikut
+dihitung. Makin banyak kamu menjelajah/memutar lewat halaman genre, makin
+akurat urutan genre dan rekomendasinya.
+Setel `BC_DATA_DIR` untuk memakai lokasi lain.
+
+## Variabel lingkungan
+
+| Variabel         | Fungsi                                             |
+|------------------|----------------------------------------------------|
+| `BC_PYTHON`      | Interpreter Python untuk jembatan (bawaan `python3`) |
+| `BC_YTDLP`       | Lokasi biner `yt-dlp`                              |
+| `BC_DATA_DIR`    | Direktori data                                     |
+
+## Protokol jembatan
+
+Permintaan (satu baris JSON):
+
+```json
+{"id": 1, "method": "search_all", "params": {"query": "sheila on 7"}}
+```
+
+Balasan:
+
+```json
+{"id": 1, "ok": true, "result": { "songs": [...], "albums": [...] }}
+{"id": 1, "ok": false, "error": "..."}
+```
+
+Metode yang tersedia: `ping`, `search_suggestions`, `search_songs`,
+`search_albums`, `search_all`, `search_artists`, `quick_picks`,
+`mood_categories`, `home_shelves`, `home_songs`, `recommendations`,
+`get_artist`, `album_tracks`, `genre_tracks`, `get_playlist`, `lyrics`,
+`watch_playlist`, `artist_songs`, dan `__quit__`.

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Blackcurrant Music Player
+GenericName=Music Player
+Comment=Open-source desktop music player built with Qt/C++, using YouTube Music as its data source.
+Comment[id]=Pemutar musik desktop sumber terbuka berbasis Qt/C++ dengan sumber data YouTube Music.
+Exec=blackcurrant
+Icon=blackcurrant
+Categories=AudioVideo;Audio;Player;
+Keywords=music;player;youtube;
+Terminal=false
+StartupWMClass=blackcurrant
