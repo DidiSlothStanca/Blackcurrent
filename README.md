@@ -5,7 +5,7 @@
 <h1 align="center">Blackcurrant Music Player</h1>
 
 <p align="center">
-  A fast, Spotify-style desktop music player for Linux, built with Qt 6 and C++.<br>
+  A Streaming Music Apps desktop music player for Linux, built with Qt 6 and C++.<br>
   Browse and stream music from YouTube Music, with no account required.
 </p>
 
