@@ -239,5 +239,4 @@ This is a **beta release**: expect rough edges, and please report bugs.
 
 ## License
 
-<!-- Fill in your license (for example GPL-3.0-or-later) and add a LICENSE file. -->
-See the `LICENSE` file.
+This project is licensed under the **GNU General Public License v3.0 or later** (GPL-3.0-or-later). See the [LICENSE](LICENSE) file for details.
